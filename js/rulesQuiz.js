@@ -8,10 +8,13 @@ function Quiz(questions){
 
 Quiz.prototype.guess = function(answer){
 	if(this.getCurrentQuestion().isCorrectAnswer(answer)){ 
-		this.score++;
-        QuizUI.displayAnswer();
-	}
-	this.currentQuestionIndex++;
+        this.score++;
+        QuizUI.rightAnswer();
+	} else {
+    QuizUI.displayAnswer();
+    }
+    QuizUI.disableChoices();
+	this.currentQuestionIndex++;  
 };
 
 Quiz.prototype.getCurrentQuestion = function(){
@@ -35,17 +38,19 @@ Question.prototype.isCorrectAnswer = function (choice) {
 
 
 //QuizUI.js
-
 var QuizUI = {
     displayNext: function () {
-        var nextButton = document.getElementById("next").style.visibility = "hidden";
+        var nextButton = document.getElementById("next");
+        nextButton.style.visibility = "hidden";
 
         if (quiz.hasEnded()) {
             this.displayScore();
         } else {
+            this.clearAnswer();
         	this.displayQuestion();
             this.displayChoices();
             this.displayProgress();
+            this.enableChoices();
         }
     },
     displayQuestion: function() {
@@ -53,7 +58,6 @@ var QuizUI = {
     },
     displayChoices: function() {
         var choices = quiz.getCurrentQuestion().choices;
-
         for(var i = 0; i < choices.length; i++) {
             this.populateIdWithHTML("choice" + i, choices[i]);
             this.guessHandler("guess" + i, choices[i]);
@@ -65,9 +69,10 @@ var QuizUI = {
                 }
         }
     },
+
     displayScore: function() {
         var gameOverHTML = "<h1>Game Over</h1>";
-        gameOverHTML += "<h2> Your score is: " + quiz.score + "</h2>";
+        gameOverHTML += "<h2> Your score is: " + quiz.score + " of " + quiz.questions.length +"</h2>";
         this.populateIdWithHTML("quiz", gameOverHTML);
     },
     
@@ -75,20 +80,34 @@ var QuizUI = {
         var element = document.getElementById(id);
         element.innerHTML = text;
     },
+
     guessHandler: function(id, guess, answer) {
-        var button = document.getElementById(id);
-        button.onclick = function() {
+        var guessButton = document.getElementById(id);
+        guessButton.onclick = function(event) {
             quiz.guess(guess);
-            QuizUI.displayAnswer();
-            QuizUI.displayNext();
+            QuizUI.nextHandler();
         }
     },
 
     nextHandler: function(){
-        var nextButton =document.getElementById("next").style.visibility = "visible";
-        nextButton.onclick = function(){
-            //QuizUI.displayAnswer();
-        QuizUI.displayNext();
+        var nextButton = document.getElementById("next");
+        nextButton.style.visibility = "visible";
+        nextButton.onclick = function() {
+            QuizUI.displayNext();
+        }
+    },
+
+    disableChoices: function(){
+        var disableOnClick = document.getElementsByClassName("btn--default");
+        for(var i = 0; i < disableOnClick.length; i++) {
+        disableOnClick[i].disabled = true;
+        }
+    },
+
+    enableChoices: function(){
+        var enableOnClick = document.getElementsByClassName("btn--default");
+        for(var i = 0; i < enableOnClick.length; i++) {
+        enableOnClick[i].disabled = false;
         }
     },
     
@@ -100,6 +119,14 @@ var QuizUI = {
     displayAnswer: function() {
 		 this.populateIdWithHTML("answer", "The answer: " + quiz.getCurrentQuestion().answer);
     },
+
+    rightAnswer: function() {
+         this.populateIdWithHTML("answer", "Correct Answer!");
+    },
+
+    clearAnswer: function(){
+        this.populateIdWithHTML("answer", "");
+    }
 }; //end of var QuizUI
 
 //app.js
@@ -126,5 +153,3 @@ var quiz = new Quiz(questions);
 //Display Quiz
 QuizUI.displayNext();
 
-//not the question
-//tried the order of the file calls
